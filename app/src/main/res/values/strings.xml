@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AgriMovies</string>
+    <string name="todo">todo</string>
+    <string name="went_wrong">Something went wrong</string>
+</resources>
