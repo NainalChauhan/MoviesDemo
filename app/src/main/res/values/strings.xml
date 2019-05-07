@@ -2,4 +2,8 @@
     <string name="app_name">AgriMovies</string>
     <string name="todo">todo</string>
     <string name="went_wrong">Something went wrong</string>
+    <string name="rating">Rating</string>
+    <string name="release_date">Release Date</string>
+    <string name="popularity">Popularity</string>
+    <string name="no_internet">No Internet Connection</string>
 </resources>
