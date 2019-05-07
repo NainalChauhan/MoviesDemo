@@ -1,9 +1,11 @@
 package com.nainal.agrimovies.servicehandlers;
 
+import com.nainal.agrimovies.model.MovieDetailModel;
 import com.nainal.agrimovies.model.MoviesListModel;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface MoviesServices {
@@ -17,4 +19,9 @@ public interface MoviesServices {
                                      @Query("primary_release_date.gte") String primary_release_date_gte,
                                      @Query("primary_release_date.lte") String primary_release_date_lte,
                                      @Query("page") int page);
+
+    @GET("movie/{movie_id}")
+    Call<MovieDetailModel> getMovie(@Query("api_key") String api_key,
+                                    @Query("language") String language,
+                                    @Path("movie_id") int movie_id);
 }

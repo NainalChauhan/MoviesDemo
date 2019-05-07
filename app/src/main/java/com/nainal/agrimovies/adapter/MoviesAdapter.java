@@ -19,8 +19,8 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     private List<MoviesModel> moviesModelList = new ArrayList<>();
     private LazyLoadListener loadListener;
-    private int TYPE_ITEM = 0;
-    private int TYPE_LOADER = 1;
+    public static final int TYPE_ITEM = 0;
+    public static final int TYPE_LOADER = 1;
     private boolean isLoading = true;
     private View progress = null;
 
@@ -95,7 +95,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         return position == moviesModelList.size();
     }
 
-    public void setModels(List<MoviesModel> movieModelList) {
+    public void setModels(List<MoviesModel> movieModelList,int pageCount) {
 //        this.moviesModelList = movieModelList;
 //        notifyDataSetChanged();
 
@@ -105,6 +105,9 @@ public class MoviesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 progress.setVisibility(View.GONE);
         } else
             isLoading = true;
+
+        if(pageCount==1)
+            this.moviesModelList.clear();
 
         this.moviesModelList.addAll(movieModelList);
 

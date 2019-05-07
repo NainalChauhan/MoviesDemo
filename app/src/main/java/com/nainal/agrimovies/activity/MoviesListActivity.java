@@ -50,41 +50,26 @@ public class MoviesListActivity extends AppCompatActivity {
         moviesAdapter = new MoviesAdapter(new MoviesAdapter.LazyLoadListener() {
             @Override
             public void onLoadMore() {
-
+                Log.e("TAG", "onLoadMore: " );
             }
         });
         moviesRecyclerView.setHasFixedSize(true);
         final GridLayoutManager gridLayoutManager=new GridLayoutManager(this,2);
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                switch(moviesAdapter.getItemViewType(position)){
+                    case MoviesAdapter.TYPE_ITEM:
+                        return 1;
+                    case MoviesAdapter.TYPE_LOADER:
+                        return 2; //number of columns of the grid
+                    default:
+                        return -1;
+                }
+            }
+        });
         moviesRecyclerView.setLayoutManager(gridLayoutManager);
         moviesRecyclerView.setAdapter(moviesAdapter);
-
-//        moviesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-//                super.onScrollStateChanged(recyclerView, newState);
-//            }
-//
-//            @Override
-//            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-//                super.onScrolled(recyclerView, dx, dy);
-//
-//                if (gridLayoutManager.findLastVisibleItemPosition() == recyclerView.getAdapter().getItemCount() - 1
-//                        && recyclerView.getChildAt(recyclerView.getChildCount() - 1).getBottom() <= recyclerView.getHeight()
-//                ) {
-//                    Log.e("TAGGGG", "getItemCount** " + recyclerView.getAdapter().getItemCount());
-//                    Log.e("TAGGGG", "findLastVisibleItemPosition** " + gridLayoutManager.findLastVisibleItemPosition());
-//                    //scroll end reached
-//                    //Write your code here
-//                    if (CAN_INCREASE) {
-//                        if (!HIDE_FOREVER) {
-//                            CAN_INCREASE = false
-//                            getReviewList()
-//                        }
-//                    }
-//
-//                }
-//            }
-//        });
 
         getMovieListFromService("popularity.desc");
     }
@@ -126,30 +111,34 @@ public class MoviesListActivity extends AppCompatActivity {
                         MoviesModel[] responseData = new MoviesModel[response.body().results.size()];
                         response.body().results.toArray(responseData);
 
-                        moviesViewModel.deleteAll();
-                        moviesViewModel.insertAll(responseData);
-                        startCallback();
+                        if(pageCount==1){
+                            moviesViewModel.deleteAll();
+                            moviesViewModel.insertAll(responseData);
+                        }
+                        pageCount++;
+                        int prevCount=pageCount-1;
+                        startCallback(prevCount);
                     }
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<MoviesListModel> call,@NonNull Throwable t) {
-                    startCallback();
+                    startCallback(pageCount);
                 }
             });
         }else {
             Toast.makeText(this, R.string.no_internet, Toast.LENGTH_SHORT).show();
-            startCallback();
+            startCallback(pageCount);
         }
     }
 
 
-    public void startCallback(){
+    public void startCallback(final int currentPageCount){
         moviesViewModel.getAllModel().observe(this, new Observer<List<MoviesModel>>() {
             @Override
             public void onChanged(@Nullable List<MoviesModel> moviesModels) {
                 //update recycler view from here
-                moviesAdapter.setModels(moviesModels);
+                moviesAdapter.setModels(moviesModels,currentPageCount);
                 if (moviesModels != null && moviesModels.size() > 0)
                     moviesProgressBar.setVisibility(View.GONE);
             }

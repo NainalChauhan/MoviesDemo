@@ -13,6 +13,7 @@ public abstract class MoviesDatabase extends RoomDatabase {
     private static MoviesDatabase moviesDatabaseInstance;
 
     public abstract MoviesDao moviesDao();
+    public abstract MovieDetailDao movieDetailDao();
 
     public static synchronized MoviesDatabase getMoviesDatabaseInstance(Context context){
         if(moviesDatabaseInstance ==null){
