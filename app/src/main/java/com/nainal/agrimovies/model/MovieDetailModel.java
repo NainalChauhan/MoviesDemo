@@ -31,9 +31,9 @@ public class MovieDetailModel {
     @ColumnInfo
     public String release_date;
 
-    @SerializedName("genres")
-    @ColumnInfo
-    public List<GenreModel> genres;
+//    @SerializedName("genres")
+//    @ColumnInfo
+//    public List<GenreModel> genres;
 
     @SerializedName("overview")
     @ColumnInfo

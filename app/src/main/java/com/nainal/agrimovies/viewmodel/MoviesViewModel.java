@@ -3,6 +3,7 @@ package com.nainal.agrimovies.viewmodel;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
+import android.arch.paging.PagedList;
 import android.support.annotation.NonNull;
 
 import com.nainal.agrimovies.model.MoviesModel;
@@ -13,7 +14,7 @@ import java.util.List;
 public class MoviesViewModel extends AndroidViewModel {
 
     private MoviesRepository moviesRepository;
-    private LiveData<List<MoviesModel>> allModel;
+    private LiveData<PagedList<MoviesModel>> allModel;
 
     public MoviesViewModel(@NonNull Application application) {
         super(application);
@@ -29,7 +30,7 @@ public class MoviesViewModel extends AndroidViewModel {
         moviesRepository.deleteAll();
     }
 
-    public LiveData<List<MoviesModel>> getAllModel(){
+    public LiveData<PagedList<MoviesModel>> getAllModel(){
         return allModel;
     }
 }

@@ -2,6 +2,7 @@ package com.nainal.agrimovies.activity;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.arch.paging.PagedList;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -37,6 +38,10 @@ public class MoviesListActivity extends AppCompatActivity {
     private MoviesViewModel moviesViewModel;
     private ProgressBar moviesProgressBar;
     private int pageCount=1;
+    private boolean isLoading=false;
+    // The minimum amount of items to have below your current scroll position
+    // before loading more.
+    private int visibleThreshold = 5;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,30 +52,46 @@ public class MoviesListActivity extends AppCompatActivity {
         moviesRecyclerView = findViewById(R.id.recycler_view_movies);
         moviesProgressBar = findViewById(R.id.progress_bar);
 
-        moviesAdapter = new MoviesAdapter(new MoviesAdapter.LazyLoadListener() {
-            @Override
-            public void onLoadMore() {
-                Log.e("TAG", "onLoadMore: " );
-            }
-        });
-        moviesRecyclerView.setHasFixedSize(true);
+        moviesAdapter = new MoviesAdapter();
+//        moviesRecyclerView.setHasFixedSize(true);
         final GridLayoutManager gridLayoutManager=new GridLayoutManager(this,2);
-        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+//        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+//            @Override
+//            public int getSpanSize(int position) {
+//                switch(moviesAdapter.getItemViewType(position)){
+//                    case MoviesAdapter.TYPE_ITEM:
+//                        return 1;
+//                    case MoviesAdapter.TYPE_LOADER:
+//                        return 2; //number of columns of the grid
+//                    default:
+//                        return -1;
+//                }
+//            }
+//        });
+        moviesRecyclerView.setLayoutManager(gridLayoutManager);
+        moviesRecyclerView.setAdapter(moviesAdapter);
+        moviesRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public int getSpanSize(int position) {
-                switch(moviesAdapter.getItemViewType(position)){
-                    case MoviesAdapter.TYPE_ITEM:
-                        return 1;
-                    case MoviesAdapter.TYPE_LOADER:
-                        return 2; //number of columns of the grid
-                    default:
-                        return -1;
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int totalItemCount = gridLayoutManager.getItemCount();
+                int visibleItemCount = gridLayoutManager.getChildCount();
+                int lastVisibleItem = gridLayoutManager.findLastVisibleItemPosition();
+
+                if ( (!isLoading) && lastVisibleItem + visibleThreshold >= totalItemCount) {
+                    isLoading=true;
+                    Log.e("TAG", "onScrolled "+visibleItemCount+"//"+lastVisibleItem+"//"+totalItemCount );
+                    getMovieListFromService("popularity.desc");
                 }
             }
         });
-        moviesRecyclerView.setLayoutManager(gridLayoutManager);
-        moviesRecyclerView.setAdapter(moviesAdapter);
-
+        moviesViewModel.getAllModel().observe(this, new Observer<PagedList<MoviesModel>>() {
+            @Override
+            public void onChanged(@Nullable PagedList<MoviesModel> moviesModels) {
+                Log.e("TAG", "onChanged: "+moviesModels.size() );
+                moviesAdapter.submitList(moviesModels);
+            }
+        });
         getMovieListFromService("popularity.desc");
     }
 
@@ -96,7 +117,9 @@ public class MoviesListActivity extends AppCompatActivity {
     private void getMovieListFromService(String sort_by){
         if (Utility.isInternetConnected(this)) {
             //if internet is connected
-            moviesProgressBar.setVisibility(View.VISIBLE);
+            Log.e("TAG", "pageCount: "+pageCount );
+            if(pageCount==1)
+                moviesProgressBar.setVisibility(View.GONE);
             Call<MoviesListModel> listMoviesCall= ServiceGenerator.createService(MoviesServices.class).listMovies(
                     ServiceGenerator.API_KEY,"en-US",sort_by,false,
                     false,"2019-04-01","2019-05-07",pageCount);
@@ -112,36 +135,40 @@ public class MoviesListActivity extends AppCompatActivity {
                         response.body().results.toArray(responseData);
 
                         if(pageCount==1){
-                            moviesViewModel.deleteAll();
-                            moviesViewModel.insertAll(responseData);
+//                            moviesViewModel.deleteAll();
                         }
+                        moviesViewModel.insertAll(responseData);
                         pageCount++;
-                        int prevCount=pageCount-1;
-                        startCallback(prevCount);
                     }
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<MoviesListModel> call,@NonNull Throwable t) {
-                    startCallback(pageCount);
+
                 }
             });
         }else {
             Toast.makeText(this, R.string.no_internet, Toast.LENGTH_SHORT).show();
-            startCallback(pageCount);
+
         }
     }
 
 
-    public void startCallback(final int currentPageCount){
-        moviesViewModel.getAllModel().observe(this, new Observer<List<MoviesModel>>() {
-            @Override
-            public void onChanged(@Nullable List<MoviesModel> moviesModels) {
-                //update recycler view from here
-                moviesAdapter.setModels(moviesModels,currentPageCount);
-                if (moviesModels != null && moviesModels.size() > 0)
-                    moviesProgressBar.setVisibility(View.GONE);
-            }
-        });
+    public void startCallback(){
+//        moviesViewModel.getAllModel().observe(this, new Observer<List<MoviesModel>>() {
+//            @Override
+//            public void onChanged(@Nullable List<MoviesModel> moviesModels) {
+//                //update recycler view from here
+//                for (MoviesModel m:
+//                     moviesModels) {
+//                    Log.e("TAG", "id: "+m.id );
+//                }
+//                Log.e("TAG", "onChanged: calleddddd "+moviesModels.size() );
+//                moviesAdapter.setModels(moviesModels,currentPageCount);
+//                if (moviesModels != null && moviesModels.size() > 0)
+//                    moviesProgressBar.setVisibility(View.GONE);
+//            }
+//        });
+
     }
 }

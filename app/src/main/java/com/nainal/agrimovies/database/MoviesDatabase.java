@@ -5,9 +5,10 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
+import com.nainal.agrimovies.model.MovieDetailModel;
 import com.nainal.agrimovies.model.MoviesModel;
 
-@Database(entities = {MoviesModel.class}, version = 1, exportSchema = false)
+@Database(entities = {MoviesModel.class, MovieDetailModel.class}, version = 1, exportSchema = false)
 public abstract class MoviesDatabase extends RoomDatabase {
 
     private static MoviesDatabase moviesDatabaseInstance;
